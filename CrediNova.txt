@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forest Bank - Ultra App</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        :root {
+            --verde: #1b4332; --cafe: #582f0e; --oro: #a68a64; --bg: #f9f7f2; --card: #ffffff; --text: #333;
+        }
+        [data-theme="dark"] {
+            --bg: #0b1a14; --card: #142a22; --text: #e0dcd0; --verde: #2d6a4f;
+        }
+
+        body { font-family: 'Georgia', serif; background: var(--bg); color: var(--text); transition: 0.4s; margin: 0; display: flex; flex-direction: column; align-items: center; padding-bottom: 80px; }
+        header { background: var(--verde); width: 100%; padding: 20px 0; color: white; text-align: center; border-bottom: 4px solid var(--cafe); position: sticky; top: 0; z-index: 100; }
+        
+        .container { width: 90%; max-width: 420px; margin-top: 20px; }
+        .card { background: var(--card); border-radius: 15px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 20px; border: 1px solid var(--verde); position: relative; }
+
+        /* Bóveda de Seguridad */
+        .vault-toggle { position: absolute; right: 20px; top: 20px; cursor: pointer; font-size: 1.2rem; filter: sepia(1); }
+        .balance-num { font-size: 2.2rem; color: var(--verde); margin: 10px 0; font-weight: bold; }
+
+        /* QR Area */
+        #qr-container { background: white; padding: 10px; border-radius: 10px; display: inline-block; margin-top: 10px; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #ccc; background: var(--bg); color: var(--text); box-sizing: border-box; }
+
+        /* Chatbot */
+        .chat-bubble { position: fixed; bottom: 20px; right: 20px; background: var(--verde); color: white; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.3); font-size: 1.5rem; z-index: 1000; }
+        .chat-window { position: fixed; bottom: 90px; right: 20px; width: 300px; background: var(--card); border-radius: 15px; box-shadow: 0 5px 25px rgba(0,0,0,0.2); border: 2px solid var(--verde); display: none; flex-direction: column; z-index: 1000; overflow: hidden; }
+        .chat-header { background: var(--verde); color: white; padding: 15px; font-weight: bold; font-size: 0.9rem; }
+        .chat-content { height: 250px; padding: 15px; overflow-y: auto; font-size: 0.85rem; }
+        .chat-input { padding: 10px; border-top: 1px solid #eee; display: flex; }
+        .bot-msg { background: #e8f5e9; padding: 8px; border-radius: 8px; margin-bottom: 10px; color: #1b4332; }
+    </style>
+</head>
+<body>
+
+<header> 
+    Forest & Heritage Bank
+    <small style="display: block; font-size: 0.6rem; letter-spacing: 2px;">SECURE DIGITAL BANKING</small>
+</header>
+
+<div class="container">
+    <div class="card">
+        <div class="vault-toggle" onclick="toggleVault()" title="Ocultar/Mostrar Saldo">👁️‍🗨️</div>
+        <small style="color: var(--oro); font-weight: bold;">SALDO DISPONIBLE</small>
+        <div class="balance-num" id="display-saldo">Q 24,500.00</div>
+        <p style="font-size: 0.7rem; color: #888;">Cuenta monetaria *7702</p>
+    </div>
+
+    <div class="card">
+        <h3 style="margin:0; color:var(--verde);">Pago QR</h3>
+        <input type="number" id="monto-qr" placeholder="Monto Q" oninput="generarQR()">
+        <div id="qr-area" style="text-align: center; display: none;">
+            <div id="qr-container"></div>
+        </div>
+    </div>
+</div>
+
+<div class="chat-bubble" onclick="toggleChat()">💬</div>
+<div class="chat-window" id="chat-window">
+    <div class="chat-header">Asistente Forest Bank 🌿</div>
+    <div class="chat-content" id="chat-content">
+        <div class="bot-msg">¡Hola! Soy tu asistente virtual. ¿En qué puedo ayudarte hoy?</div>
+    </div>
+    <div class="chat-input">
+        <input type="text" id="user-msg" placeholder="Pregunta algo..." onkeypress="if(event.key==='Enter') sendChat()">
+    </div>
+</div>
+
+<script>
+    let saldoReal = 24500.00;
+    let vaultHidden = false;
+
+    // Lógica Bóveda
+    function toggleVault() {
+        vaultHidden = !vaultHidden;
+        const display = document.getElementById('display-saldo');
+        if (vaultHidden) {
+            display.innerText = "Q ••••••••";
+            display.style.letterSpacing = "3px";
+        } else {
+            display.innerText = `Q ${saldoReal.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+            display.style.letterSpacing = "0px";
+        }
+    }
+
+    // Lógica QR
+    function generarQR() {
+        const monto = document.getElementById('monto-qr').value;
+        const area = document.getElementById('qr-area');
+        const container = document.getElementById('qr-container');
+        if (monto > 0) {
+            area.style.display = 'block';
+            container.innerHTML = "";
+            new QRCode(container, { text: `PAGO|${monto}`, width: 120, height: 120, colorDark: "#1b4332" });
+        } else { area.style.display = 'none'; }
+    }
+
+    // Lógica Chatbot
+    function toggleChat() {
+        const win = document.getElementById('chat-window');
+        win.style.display = win.style.display === 'flex' ? 'none' : 'flex';
+    }
+
+    function sendChat() {
+        const input = document.getElementById('user-msg');
+        const content = document.getElementById('chat-content');
+        if (!input.value) return;
+
+        content.innerHTML += `<div style="text-align:right; margin-bottom:10px;"><b>Tú:</b> ${input.value}</div>`;
+        
+        // Respuestas automáticas simples
+        let respuesta = "Lo siento, no entiendo esa consulta. Prueba con 'horario', 'préstamo' o 'sucursal'.";
+        const msg = input.value.toLowerCase();
+        
+        if (msg.includes("horario")) respuesta = "Atendemos de lunes a viernes de 9:00 AM a 6:00 PM.";
+        if (msg.includes("préstamo")) respuesta = "Contamos con tasas desde el 12% anual. ¡Usa nuestro simulador arriba!";
+        if (msg.includes("sucursal")) respuesta = "Nuestra sede central está en la Zona Viva, Edificio El Bosque.";
+
+        setTimeout(() => {
+            content.innerHTML += `<div class="bot-msg"><b>Bot:</b> ${respuesta}</div>`;
+            content.scrollTop = content.scrollHeight;
+        }, 600);
+        
+        input.value = "";
+    }
+</script>
+
+</body>
+</html>
