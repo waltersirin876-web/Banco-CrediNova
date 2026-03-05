@@ -39,7 +39,7 @@
 <body>
 
 <header> 
-    Forest & Heritage Bank
+    CREDINOVA
     <small style="display: block; font-size: 0.6rem; letter-spacing: 2px;">SECURE DIGITAL BANKING</small>
 </header>
 
